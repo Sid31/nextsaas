@@ -1,6 +1,7 @@
-import { supabase } from "../../../utils/supabase";
+import { supabase } from "../../../../utils/supabase";
 import cookie from "cookie";
 import initStripe from "stripe";
+import axios from "axios";
 
 const handler = async (req, res) => {
   const { user } = await supabase.auth.api.getUserByCookie(req);

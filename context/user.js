@@ -8,47 +8,47 @@ const Provider = ({ children }) => {
   const router = useRouter();
   const [user, setUser] = useState(supabase.auth.getUser());
 
-  useEffect(() => {
-    const getUserProfile = async () => {
-      try {
-        // Check if the user is authenticated
-        const { data: userResponse, error: userError } = await supabase.auth.getUser();
-  
-        if (userError) throw userError;
+useEffect(() => {
+  const getUserProfile = async () => {
+    try {
+      // Check if the user is authenticated
+      const { data: userResponse, error: userError } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      
+      const sessionUser = userResponse?.user;
+      if (!sessionUser) throw new Error('User is not authenticated');
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profile")
+        .select("*")
+        .eq("id", sessionUser.id)
+        .single();
         
-        const sessionUser = userResponse?.user;
-        if (!sessionUser) throw new Error('User is not authenticated');
-  
-        const { data: profile, error: profileError } = await supabase
-          .from("profile")
-          .select("*")
-          .eq("id", sessionUser.id)
-          .single();
-          
-        if (profileError) throw profileError;
-        
-        setUser({
-          ...sessionUser,
-          ...profile,
-        });
-      } catch (error) {
-        console.error("Error getting user profile: ", error);
-      }
-    };
-  
-    getUserProfile();
-  
-    const { data: subscription } = supabase
-      .auth
-      .onAuthStateChange(() => {
-        getUserProfile();
+      if (profileError) throw profileError;
+      
+      setUser({
+        ...sessionUser,
+        ...profile,
       });
-  
-    return () => {
-      if (subscription) subscription.unsubscribe();
-    };
-  }, []);
-  
+    } catch (error) {
+      console.error("Error getting user profile: ", error);
+    }
+  };
+
+  getUserProfile();
+
+  const { data: subscription } = supabase
+    .auth
+    .onAuthStateChange(() => {
+      getUserProfile();
+    });
+
+  return () => {
+    if (subscription) subscription.unsubscribe();
+  };
+}, []);
+
   
   const login = async () => {
     await supabase.auth.signInWithOAuth({
